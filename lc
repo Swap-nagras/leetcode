@@ -1,0 +1,168 @@
+#!/Users/swapnilnagras/Dev/leetcode/.venv/bin/python
+"""
+Script to create LeetCode problem files with proper naming convention.
+Fetches problem details from LeetCode and creates a file with the format:
+XXX_problem_name.cpp where XXX is the zero-padded problem number.
+
+Can be called from anywhere in the repository.
+"""
+
+import sys
+import re
+import requests
+from pathlib import Path
+
+
+def get_problem_details(url):
+    """
+    Extract problem details from LeetCode URL.
+    
+    Args:
+        url: LeetCode problem URL
+        
+    Returns:
+        tuple: (problem_number, problem_slug, problem_title)
+    """
+    # Extract problem slug from URL
+    # Supports formats like:
+    # - https://leetcode.com/problems/two-sum/
+    # - https://leetcode.com/problems/two-sum/description/
+    match = re.search(r'leetcode\.com/problems/([^/]+)', url)
+    if not match:
+        raise ValueError("Invalid LeetCode URL format")
+    
+    problem_slug = match.group(1)
+    
+    # Fetch problem details using LeetCode's GraphQL API
+    graphql_url = "https://leetcode.com/graphql"
+    query = """
+    query getQuestionDetail($titleSlug: String!) {
+        question(titleSlug: $titleSlug) {
+            questionId
+            questionFrontendId
+            title
+            titleSlug
+        }
+    }
+    """
+    
+    payload = {
+        "query": query,
+        "variables": {"titleSlug": problem_slug}
+    }
+    
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0"
+    }
+    
+    try:
+        response = requests.post(graphql_url, json=payload, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        
+        if 'errors' in data or not data.get('data', {}).get('question'):
+            raise ValueError(f"Problem not found: {problem_slug}")
+        
+        question = data['data']['question']
+        problem_number = question['questionFrontendId']
+        problem_title = question['title']
+        
+        return problem_number, problem_slug, problem_title
+    
+    except requests.RequestException as e:
+        raise ValueError(f"Failed to fetch problem details: {e}")
+
+
+def sanitize_title(title):
+    """
+    Convert problem title to filename format.
+    
+    Args:
+        title: Problem title (e.g., "Two Sum")
+        
+    Returns:
+        str: Sanitized title (e.g., "two_sum")
+    """
+    # Convert to lowercase and replace spaces/special chars with underscores
+    sanitized = re.sub(r'[^a-z0-9]+', '_', title.lower())
+    # Remove leading/trailing underscores
+    sanitized = sanitized.strip('_')
+    return sanitized
+
+
+def create_problem_file(url, directory=None, extension='cpp'):
+    """
+    Create a file for a LeetCode problem with proper naming convention.
+    
+    Args:
+        url: LeetCode problem URL
+        directory: Directory to create the file in (default: current directory)
+        extension: File extension (default: cpp)
+        
+    Returns:
+        Path: Path to the created file
+    """
+    # Get problem details
+    problem_number, problem_slug, problem_title = get_problem_details(url)
+    
+    # Format filename: XXX_problem_name.ext
+    padded_number = problem_number.zfill(3)
+    sanitized_title = sanitize_title(problem_title)
+    filename = f"{padded_number}_{sanitized_title}.{extension}"
+    
+    # Determine file path
+    if directory:
+        file_path = Path(directory) / filename
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+    else:
+        file_path = Path(filename)
+    
+    # Create file with basic template
+    template = f"""/*
+ * Problem: {problem_number}. {problem_title}
+ * URL: https://leetcode.com/problems/{problem_slug}/
+ * Difficulty: 
+ * Topics: 
+ */
+
+"""
+    
+    if file_path.exists():
+        print(f"Warning: File already exists: {file_path}")
+        response = input("Overwrite? (y/n): ")
+        if response.lower() != 'y':
+            print("Aborted.")
+            return None
+    
+    file_path.write_text(template)
+    print(f"Created: {file_path}")
+    
+    return file_path
+
+
+def main():
+    """Main entry point for the script."""
+    if len(sys.argv) < 2:
+        print("Usage: lc <leetcode_url> [directory] [extension]")
+        print("\nExamples:")
+        print("  lc https://leetcode.com/problems/two-sum/")
+        print("  lc https://leetcode.com/problems/two-sum/ . cpp")
+        print("  lc https://leetcode.com/problems/two-sum/ ../arrays")
+        print("\nDirectory defaults to current directory ('.')")
+        print("Extension defaults to 'cpp'")
+        sys.exit(1)
+    
+    url = sys.argv[1]
+    directory = sys.argv[2] if len(sys.argv) > 2 else '.'
+    extension = sys.argv[3] if len(sys.argv) > 3 else 'cpp'
+    
+    try:
+        create_problem_file(url, directory, extension)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
