@@ -18,8 +18,19 @@ leetcode/
 │   │   └── two_pointers/
 │   └── neetcode_150/          # NeetCode 150 problems
 ├── lc                         # Problem file creator script
+├── common.hpp                 # Common C++ headers and STL imports
+├── structures.hpp             # Common data structures (TreeNode, ListNode, etc.)
 └── README.md                  # Project documentation
 ```
+
+## C++ Header Files
+
+To avoid issues with `bits/stdc++.h` on macOS/Clang, the repository includes:
+
+- **`common.hpp`**: Standard library includes (vector, map, queue, etc.) and `using namespace std`
+- **`structures.hpp`**: Common LeetCode data structures (TreeNode, ListNode, GraphNode, etc.)
+
+All generated solution files automatically include these headers with proper relative paths.
 
 ## File Naming Convention
 

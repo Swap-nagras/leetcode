@@ -5,25 +5,9 @@
  * Topics: tree, depth-first search, recursion
  */
 
-/**
- * Definition for a binary tree node.
- * struct TreeNode {
- *     int val;
- *     TreeNode *left;
- *     TreeNode *right;
- *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
- * };
- */
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
+#include "../../../common.hpp"
+#include "../../../structures.hpp"
 
-using namespace std;
 class Solution {
 public:
     TreeNode* f(TreeNode* root, TreeNode* p, TreeNode* q){

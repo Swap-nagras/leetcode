@@ -119,12 +119,23 @@ def create_problem_file(url, directory=None, extension='cpp'):
         file_path = Path(filename)
     
     # Create file with basic template
+    # Calculate relative path to headers from the file location
+    if directory and directory != '.':
+        # Count directory depth to calculate relative path
+        depth = len(Path(directory).parts)
+        header_path = '/'.join(['..'] * depth) if depth > 0 else '.'
+    else:
+        header_path = '.'
+    
     template = f"""/*
  * Problem: {problem_number}. {problem_title}
  * URL: https://leetcode.com/problems/{problem_slug}/
  * Difficulty: 
  * Topics: 
  */
+
+#include "{header_path}/common.hpp"
+#include "{header_path}/structures.hpp"
 
 """
     
