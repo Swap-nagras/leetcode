@@ -84,7 +84,7 @@ lc <leetcode_url> [directory] [extension]
 
 1. **Fetches problem metadata** from LeetCode's API (problem number, title)
 2. **Generates properly formatted filename** following the `XXX_problem_name.ext` convention
-3. **Creates the file** with a starter template including:
+3. **Creates the file** with a starter template in the current directrory including:
    - Problem number and title
    - Problem URL
    - Placeholders for difficulty and topics
@@ -97,7 +97,7 @@ Running:
 lc https://leetcode.com/problems/two-sum/
 ```
 
-Creates `001_two_sum.cpp` with:
+Creates `0XX_two_sum.cpp` with:
 
 ```cpp
 /*
